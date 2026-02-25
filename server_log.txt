@@ -1,0 +1,22 @@
+INFO:     Started server process [35062]
+INFO:     Waiting for application startup.
+[ERROR:0@10.100] global persistence.cpp:566 open Can't open file: '/Users/vineshnayak/Downloads/Sentinel-Face-Secure -1/Sentinel-Face-Secure/server/venv/lib/python3.10/site-packages/cv2/data/haarcascade_mcs_nose.xml' in read mode
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:5000 (Press CTRL+C to quit)
+CNN Embedding: Device = cpu
+Haar cascade loaded successfully from local file
+Face detection: Haar cascade active
+Starting Sentinel Face Secure on http://0.0.0.0:5000
+API Documentation: http://localhost:5000/docs
+Loading MobileNetV2 (embedding_dim=128)...
+CNN Embedding: MobileNetV2 loaded successfully
+CNN Embedding: MobileNetV2 loaded with 128D embeddings
+Enhanced liveness detector initialized (lenient mode)
+Masked face and eyeglasses handler initialized
+Connected to MongoDB database: sentinel_face
+INFO:     127.0.0.1:49855 - "HEAD /api/health HTTP/1.1" 405 Method Not Allowed
+INFO:     127.0.0.1:49855 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [35062]

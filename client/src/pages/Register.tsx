@@ -15,7 +15,7 @@ import { TechCard } from "@/components/TechCard";
 import { Progress } from "@/components/ui/progress";
 
 // Constants
-const REQUIRED_IMAGES = 5;
+const REQUIRED_IMAGES = 15;
 
 // Validation Schema
 const enrollSchema = z.object({
@@ -29,7 +29,7 @@ export default function Register() {
   const [step, setStep] = useState<1 | 2>(1);
   const [capturedImages, setCapturedImages] = useState<string[]>([]);
   const webcamRef = useRef<Webcam>(null);
-  
+
   const enrollMutation = useEnroll();
   const form = useForm<EnrollFormData>({
     resolver: zodResolver(enrollSchema),
@@ -69,7 +69,7 @@ export default function Register() {
   return (
     <div className="min-h-screen bg-background p-4 md:p-8 flex items-center justify-center">
       <div className="w-full max-w-5xl grid lg:grid-cols-2 gap-8">
-        
+
         {/* Left Col: Form & Instructions */}
         <div className="space-y-6">
           <div className="flex items-center justify-between">
@@ -89,10 +89,10 @@ export default function Register() {
               <div className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-500">
                 <div className="space-y-2">
                   <Label htmlFor="name">Full Name</Label>
-                  <Input 
-                    id="name" 
-                    placeholder="e.g. Sarah Connor" 
-                    {...form.register("name")} 
+                  <Input
+                    id="name"
+                    placeholder="e.g. Sarah Connor"
+                    {...form.register("name")}
                     className="bg-card border-white/10 focus:border-primary h-12"
                   />
                   {form.formState.errors.name && (
@@ -102,7 +102,7 @@ export default function Register() {
 
                 <div className="space-y-2">
                   <Label htmlFor="role">Access Level</Label>
-                  <Select 
+                  <Select
                     onValueChange={(val) => form.setValue("role", val as any)}
                     defaultValue={form.getValues("role")}
                   >
@@ -138,26 +138,26 @@ export default function Register() {
                 </div>
 
                 <div className="flex gap-4">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
+                  <Button
+                    type="button"
+                    variant="outline"
                     className="flex-1"
                     onClick={() => setStep(1)}
                   >
                     Back
                   </Button>
-                  
+
                   {isComplete ? (
-                    <Button 
-                      type="submit" 
+                    <Button
+                      type="submit"
                       className="flex-[2] bg-primary text-primary-foreground"
                       disabled={enrollMutation.isPending}
                     >
                       {enrollMutation.isPending ? "Registering..." : "Complete Enrollment"}
                     </Button>
                   ) : (
-                    <Button 
-                      type="button" 
+                    <Button
+                      type="button"
                       className="flex-[2]"
                       onClick={handleCapture}
                     >
@@ -182,7 +182,7 @@ export default function Register() {
                   className="w-full h-full object-cover mirror-x"
                   style={{ transform: "scaleX(-1)" }}
                 />
-                
+
                 {/* Visual Feedback on Capture */}
                 <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-xs font-mono border border-white/10">
                   {isComplete ? (
@@ -194,31 +194,31 @@ export default function Register() {
               </div>
 
               {/* Thumbnail Grid */}
-              <div className="grid grid-cols-5 gap-2">
+              <div className="grid grid-cols-5 md:grid-cols-8 gap-2">
                 {Array.from({ length: REQUIRED_IMAGES }).map((_, i) => (
                   <div key={i} className="aspect-square rounded-md bg-white/5 overflow-hidden border border-white/5 relative">
                     {capturedImages[i] ? (
                       <img src={capturedImages[i]} alt={`Capture ${i}`} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-white/10">
-                        <UserPlus className="w-4 h-4" />
+                        <UserPlus className="w-3 h-3" />
                       </div>
                     )}
                   </div>
                 ))}
               </div>
-              
+
               {capturedImages.length > 0 && !isComplete && (
-                 <Button variant="ghost" size="sm" onClick={handleRetake} className="w-full mt-4 text-xs text-muted-foreground hover:text-destructive">
-                   <RefreshCw className="w-3 h-3 mr-2" /> Clear & Retake
-                 </Button>
+                <Button variant="ghost" size="sm" onClick={handleRetake} className="w-full mt-4 text-xs text-muted-foreground hover:text-destructive">
+                  <RefreshCw className="w-3 h-3 mr-2" /> Clear & Retake
+                </Button>
               )}
             </TechCard>
           ) : (
             // Placeholder when in step 1
             <div className="hidden lg:flex flex-col items-center justify-center text-center p-12 opacity-50">
               <div className="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center mb-6">
-                 <Camera className="w-10 h-10 text-white/20" />
+                <Camera className="w-10 h-10 text-white/20" />
               </div>
               <h3 className="text-xl font-display font-bold">Camera Standby</h3>
               <p className="text-muted-foreground max-w-xs mt-2">Webcam will activate in the next step to capture user biometrics.</p>

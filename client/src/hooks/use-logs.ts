@@ -1,15 +1,27 @@
 import { useQuery } from "@tanstack/react-query";
-import { api, type Log } from "@shared/routes";
+
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+interface LogResponse {
+  id: string;
+  userId?: string;
+  timestamp: string;
+  status: string;
+  spoofScore?: string;
+}
 
 export function useLogs() {
   return useQuery({
-    queryKey: [api.logs.list.path],
+    queryKey: ["logs"],
     queryFn: async () => {
-      const res = await fetch(api.logs.list.path);
+      const res = await fetch(`${API_BASE}/api/logs`);
       if (!res.ok) throw new Error("Failed to fetch logs");
       const data = await res.json();
-      return api.logs.list.responses[200].parse(data);
+      return data.map((log: LogResponse) => ({
+        ...log,
+        timestamp: new Date(log.timestamp)
+      }));
     },
-    refetchInterval: 5000, // Real-time-ish updates for admin dashboard
+    refetchInterval: 5000,
   });
 }
