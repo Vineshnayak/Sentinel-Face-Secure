@@ -6,7 +6,7 @@
 ![AI Model](https://img.shields.io/badge/Model-MobileNetV2%20CNN-orange)
 ![Security](https://img.shields.io/badge/Security-Fernet%20Encryption-red)
 
-**Sentinel Face Secure** is a state-of-the-art, privacy-focused facial authentication system designed for high-security enterprise environments. It leverages lightweight Convolutional Neural Networks (CNNs) for edge-compatible face recognition and implements a multi-modal liveness detection engine to prevent spoofing attacks.
+**Sentinel Face Secure** is a facial authentication system focused on secure and privacy-aware identity verification. It uses lightweight convolutional neural networks (CNNs) for efficient face recognition and incorporates multiple liveness detection techniques to reduce spoofing attacks.
 
 ---
 
@@ -228,3 +228,4 @@ Ensure your local MongoDB service is running.
 
 ## 📄 License
 This project is licensed under the MIT License.
+
