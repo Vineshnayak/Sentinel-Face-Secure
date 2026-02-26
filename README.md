@@ -1,4 +1,4 @@
-# Sentinel Face Secure - Advanced Biometric Authentication System
+# Sentinel Face Secure
 
 ![Language](https://img.shields.io/badge/Language-Python%20%7C%20TypeScript-blue)
 ![Framework](https://img.shields.io/badge/Framework-FastAPI%20%7C%20React-green)
@@ -6,7 +6,7 @@
 ![AI Model](https://img.shields.io/badge/Model-MobileNetV2%20CNN-orange)
 ![Security](https://img.shields.io/badge/Security-Fernet%20Encryption-red)
 
-**Sentinel Face Secure** is a facial authentication system focused on secure and privacy-aware identity verification. It uses lightweight convolutional neural networks (CNNs) for efficient face recognition and incorporates multiple liveness detection techniques to reduce spoofing attacks.
+**Sentinel Face Secure** is a facial authentication system designed for secure and privacy-aware identity verification. It uses lightweight convolutional neural networks (CNNs) for efficient face recognition and incorporates multiple liveness detection techniques to reduce spoofing attacks. The system is designed and implemented with a focus on deployment on **resource-constrained edge devices**.
 
 ---
 
@@ -228,4 +228,5 @@ Ensure your local MongoDB service is running.
 
 ## 📄 License
 This project is licensed under the MIT License.
+
 
