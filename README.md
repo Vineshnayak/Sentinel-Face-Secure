@@ -154,7 +154,7 @@ sentinel-face-secure/
    ```bash
    python main.py
    ```
-   _Server will start at `http://localhost:5000`._
+   _Server will start at `http://localhost:5001`._
 
 ### Step 2: Frontend Setup
 1.  Open a new terminal and navigate to the client directory:
@@ -179,7 +179,7 @@ Create a `.env` file in the `server` directory with the following variables:
 
 ```env
 # Server
-PORT=5000
+PORT=5001
 FRONTEND_DIR=../client/dist
 
 # Database

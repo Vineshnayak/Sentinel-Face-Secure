@@ -41,7 +41,7 @@ from quantization import create_quantized_extractor
 
 
 # Configuration
-PORT = int(os.getenv("PORT", "5000"))
+PORT = int(os.getenv("PORT", "5001"))
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "client", "dist")
 USE_YOLO = os.getenv("USE_YOLO", "false").lower() == "true"
 ENCRYPT_EMBEDDINGS = os.getenv("ENCRYPT_EMBEDDINGS", "true").lower() == "true"

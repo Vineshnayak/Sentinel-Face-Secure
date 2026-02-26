@@ -1,6 +1,29 @@
-node_modules
-dist
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Node
+node_modules/
+
+# Logs
+*.log
+server_log.txt
+
+# Environment files
+.env
+
+# OS files
 .DS_Store
-server/public
-vite.config.ts.*
-*.tar.gz
+
+# Build files
+dist/
+build/
+
+# Temporary files
+*.tmp
+
+# Face data
+datasets/
+uploads/
+images/
