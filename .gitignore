@@ -10,17 +10,17 @@ node_modules/
 *.log
 server_log.txt
 
-# Environment files
+# Environment
 .env
 
-# OS files
+# OS
 .DS_Store
 
-# Build files
+# Build
 dist/
 build/
 
-# Temporary files
+# Temp
 *.tmp
 
 # Face data
