@@ -4,8 +4,9 @@ Face Authentication using Lightweight CNN (MobileNetV2)
 Compatible with existing API endpoints
 """
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from typing import List, Optional, Dict
@@ -25,7 +26,7 @@ from models import (
     EnrollRequest, EnrollResponse,
     VerifyRequest, VerifyResponse,
     LogResponse, HealthResponse,
-    UserResponse
+    UserResponse, AIInsightResponse
 )
 from lfw_evaluation import create_evaluation_endpoint
 
@@ -33,7 +34,12 @@ from lfw_evaluation import create_evaluation_endpoint
 from cnn_embedding import load_embedding_model, CNNEmbeddingExtractor
 from yolo_detector import get_yolo_detector
 from liveness_detection import create_liveness_detector, EnhancedLivenessDetector
+from risk_engine import RiskEngine
+from ai_agent import SecurityAIAgent
+from reports import generate_daily_report_pdf
 from encryption import encrypt_embedding, decrypt_embedding
+from autonomous_agent import agent_instance, ALERTS_COLLECTION
+from evals.runner import AgentEvaluator
 from metrics import get_metrics_tracker, get_system_metrics, PerformanceMetrics
 from masked_face_handler import create_masked_face_handler, MaskedFaceHandler
 from evaluation_metrics import FARFRREvaluator
@@ -123,7 +129,9 @@ async def lifespan(app: FastAPI):
     print("Masked face and eyeglasses handler initialized")
     
     await Database.connect()
+    agent_instance.start()
     yield
+    agent_instance.stop()
     await Database.disconnect()
 
 
@@ -755,7 +763,7 @@ async def enroll_user(request: EnrollRequest):
 
 
 @app.post("/api/verify", response_model=VerifyResponse)
-async def verify_face(request: VerifyRequest):
+async def verify_face(request: VerifyRequest, req: Request):
     """
     Verify face using CNN embedding with cosine similarity
     Enhanced liveness detection included
@@ -766,6 +774,52 @@ async def verify_face(request: VerifyRequest):
     
     start_time = time.time()
     
+    # Extract metadata for enhanced logging
+    user_agent_str = req.headers.get("user-agent", "")
+    try:
+        from user_agents import parse
+        user_agent = parse(user_agent_str)
+        device = user_agent.device.family if user_agent.device.family != "Other" else None
+        browser = user_agent.browser.family if user_agent.browser.family != "Other" else None
+        os_name = user_agent.os.family if user_agent.os.family != "Other" else None
+    except:
+        device, browser, os_name = None, None, None
+        
+    base_log = {
+        "device": device,
+        "browser": browser,
+        "os": os_name,
+        "ipAddress": req.client.host if req.client else None,
+        "location": request.location,
+        "sessionId": request.sessionId,
+        "timestamp": datetime.now(),
+    }
+    
+    risk_engine = RiskEngine(logs_collection)
+    
+    async def log_event(status, user_id=None, spoof_score=None, confidence_score=None, liveness_score=None, details=None):
+        doc = {**base_log, "status": status, "userId": user_id, "details": details}
+        if spoof_score is not None:
+            doc["spoofScore"] = str(spoof_score)
+        if confidence_score is not None:
+            doc["confidenceScore"] = float(confidence_score)
+        if liveness_score is not None:
+            doc["livenessScore"] = float(liveness_score)
+            
+        risk_data = await risk_engine.calculate_risk(
+            user_id=user_id,
+            status=status,
+            liveness_score=liveness_score or 0.0,
+            confidence_score=confidence_score or 0.0,
+            device=doc.get("device"),
+            ip_address=doc.get("ipAddress"),
+            location=doc.get("location")
+        )
+        doc["riskScore"] = risk_data["riskScore"]
+        doc["riskLevel"] = risk_data["riskLevel"]
+        
+        await logs_collection.insert_one(doc)
+
     blink_count = 0
     blink_check_passed = True
     blink_detection_available = False
@@ -794,14 +848,7 @@ async def verify_face(request: VerifyRequest):
     try:
         image = base64_to_image(request.image)
     except Exception:
-        log_doc = {
-            "userId": None,
-            "status": "failed",
-            "confidence": "0.0",
-            "timestamp": datetime.now(),
-            "details": "Invalid image format"
-        }
-        await logs_collection.insert_one(log_doc)
+        await log_event(status="failed", confidence_score=0.0, details="Invalid image format")
         
         return VerifyResponse(
             verified=False,
@@ -853,14 +900,7 @@ async def verify_face(request: VerifyRequest):
     # Log video spoofing detection
     if video_spoof_detected:
         print(f"[SECURITY] Video spoofing attempt detected! Spoof score: {liveness_result.details.get('video_spoofing_detected', 'N/A')}")
-        log_doc = {
-            "userId": None,
-            "status": "spoof",
-            "confidence": str(liveness_score),
-            "timestamp": datetime.now(),
-            "details": "Video replay/spoofing detected - live face required"
-        }
-        await logs_collection.insert_one(log_doc)
+        await log_event(status="spoof", liveness_score=liveness_score, details="Video replay/spoofing detected - live face required")
         
         return VerifyResponse(
             verified=False,
@@ -882,14 +922,7 @@ async def verify_face(request: VerifyRequest):
             liveness_score = 0.5
     
     if not is_real:
-        log_doc = {
-            "userId": None,
-            "status": "liveness_failed",
-            "confidence": str(liveness_score),
-            "timestamp": datetime.now(),
-            "details": "Liveness check failed - possible spoof attempt"
-        }
-        await logs_collection.insert_one(log_doc)
+        await log_event(status="liveness_failed", liveness_score=liveness_score, details="Liveness check failed - possible spoof attempt")
         
         return VerifyResponse(
             verified=False,
@@ -900,14 +933,7 @@ async def verify_face(request: VerifyRequest):
         )
     
     if not blink_check_passed and blink_detection_available:
-        log_doc = {
-            "userId": None,
-            "status": "liveness_failed",
-            "confidence": str(blink_count),
-            "timestamp": datetime.now(),
-            "details": f"Blink verification failed - detected {blink_count} blinks"
-        }
-        await logs_collection.insert_one(log_doc)
+        await log_event(status="liveness_failed", confidence_score=blink_count, liveness_score=liveness_score, details=f"Blink verification failed - detected {blink_count} blinks")
         
         return VerifyResponse(
             verified=False,
@@ -926,14 +952,7 @@ async def verify_face(request: VerifyRequest):
     )
     
     if face_region is None:
-        log_doc = {
-            "userId": None,
-            "status": "no_face",
-            "confidence": str(liveness_score),
-            "timestamp": datetime.now(),
-            "details": f"No clear face detected after {detection_attempts} attempts (20s timeout)"
-        }
-        await logs_collection.insert_one(log_doc)
+        await log_event(status="no_face", liveness_score=liveness_score, details=f"No clear face detected after {detection_attempts} attempts (20s timeout)")
         
         return VerifyResponse(
             verified=False,
@@ -947,14 +966,7 @@ async def verify_face(request: VerifyRequest):
     embedding = extract_embedding(face_region)
     
     if embedding is None:
-        log_doc = {
-            "userId": None,
-            "status": "embedding_failed",
-            "confidence": "0.0",
-            "timestamp": datetime.now(),
-            "details": "Embedding extraction failed"
-        }
-        await logs_collection.insert_one(log_doc)
+        await log_event(status="embedding_failed", confidence_score=0.0, liveness_score=liveness_score, details="Embedding extraction failed")
         
         return VerifyResponse(
             verified=False,
@@ -1056,14 +1068,7 @@ async def verify_face(request: VerifyRequest):
         if not high_confidence and too_close:
             # Similarity with second user is almost as high - reject as possible attack
             print(f"[DEBUG] SECURITY: Rejected - second best similarity too close ({second_best_similarity:.4f})")
-            log_doc = {
-                "userId": None,
-                "status": "failed",
-                "confidence": str(best_similarity),
-                "timestamp": datetime.now(),
-                "details": f"Security rejection - multiple similar faces detected. Best: {best_similarity:.4f}, Second: {second_best_similarity:.4f}"
-            }
-            await logs_collection.insert_one(log_doc)
+            await log_event(status="failed", confidence_score=best_similarity, details=f"Security rejection - multiple similar faces detected. Best: {best_similarity:.4f}, Second: {second_best_similarity:.4f}")
             
             return VerifyResponse(
                 verified=False,
@@ -1083,14 +1088,7 @@ async def verify_face(request: VerifyRequest):
         if face_sizes:
             liveness_details += f", head_movement_detected: {head_movement_detected}"
         
-        log_doc = {
-            "userId": str(best_match["_id"]),
-            "status": "success",
-            "confidence": str(spoof_score),
-            "timestamp": datetime.now(),
-            "details": f"Match: {best_match['name']}, similarity: {best_similarity:.4f}, {liveness_details}, all_similarities: {all_similarities}"
-        }
-        await logs_collection.insert_one(log_doc)
+        await log_event(status="success", user_id=str(best_match["_id"]), spoof_score=spoof_score, confidence_score=best_similarity, liveness_score=liveness_score, details=f"Match: {best_match['name']}, similarity: {best_similarity:.4f}, {liveness_details}, all_similarities: {all_similarities}")
         
         return VerifyResponse(
             verified=True,
@@ -1123,21 +1121,13 @@ async def verify_face(request: VerifyRequest):
             message = f"Face not recognized - similarity: {best_similarity:.2f}, threshold: {effective_threshold:.2f}"
             details = f"Best: {best_similarity:.4f}, threshold: {effective_threshold:.2f}. All similarities: {all_similarities}"
         
-        log_doc = {
-            "userId": None,
-            "status": "failed",
-            "confidence": str(best_similarity),
-            "timestamp": datetime.now(),
-            "details": details
-        }
-        await logs_collection.insert_one(log_doc)
+        await log_event(status="failed", confidence_score=best_similarity, details=details)
         
         return VerifyResponse(
             verified=False,
             status="failed",
             message=message
         )
-
 
 @app.get("/api/logs", response_model=List[LogResponse])
 async def get_logs():
@@ -1153,7 +1143,17 @@ async def get_logs():
             userId=log.get("userId"),
             timestamp=log["timestamp"],
             status=log["status"],
-            spoofScore=log.get("confidence")
+            spoofScore=log.get("spoofScore", log.get("confidence")),
+            device=log.get("device"),
+            browser=log.get("browser"),
+            os=log.get("os"),
+            ipAddress=log.get("ipAddress"),
+            location=log.get("location"),
+            sessionId=log.get("sessionId"),
+            confidenceScore=log.get("confidenceScore"),
+            livenessScore=log.get("livenessScore"),
+            riskScore=log.get("riskScore"),
+            riskLevel=log.get("riskLevel")
         )
         for log in logs
     ]
@@ -1181,7 +1181,7 @@ async def get_users():
 # ============== New Metrics Endpoints ==============
 
 @app.get("/api/system/metrics")
-async def get_system_metrics():
+async def get_system_metrics_endpoint():
     """
     Get performance metrics for edge deployment
     
@@ -1212,6 +1212,167 @@ async def get_system_metrics():
         "model": model_info,
         "timestamp": datetime.now().isoformat()
     }
+
+
+# ============== AI Insights Endpoints ==============
+
+@app.get("/api/insights/summary", response_model=AIInsightResponse)
+async def get_ai_summary():
+    """Generates a SOC summary of the last 24 hours of logs."""
+    db = Database.get_db()
+    logs_collection = db[LOGS_COLLECTION]
+    
+    # Get the last 100 logs (approx 24h of active test data)
+    logs = await logs_collection.find({}).sort("timestamp", -1).limit(100).to_list(length=100)
+    
+    try:
+        agent = SecurityAIAgent()
+        summary = await agent.generate_daily_summary(logs)
+        return AIInsightResponse(insight=summary)
+    except Exception as e:
+        print(f"Failed to initialize AI Agent: {e}")
+        raise HTTPException(status_code=500, detail="AI Agent unavailable. Check API Key.")
+
+@app.post("/api/insights/analyze/{log_id}", response_model=AIInsightResponse)
+async def analyze_specific_log(log_id: str):
+    """Provides deep-dive analysis on a specific log."""
+    db = Database.get_db()
+    logs_collection = db[LOGS_COLLECTION]
+    
+    from bson.objectid import ObjectId
+    try:
+        log = await logs_collection.find_one({"_id": ObjectId(log_id)})
+        if not log:
+            raise HTTPException(status_code=404, detail="Log not found")
+            
+        # If High Risk, fetch recent failures for that IP to give AI more context
+        user_history = []
+        if log.get("riskLevel") in ["HIGH", "MEDIUM"]:
+            ip = log.get("ipAddress")
+            if ip:
+                from datetime import timedelta
+                one_hour_ago = log["timestamp"] - timedelta(hours=1)
+                user_history = await logs_collection.find({
+                    "ipAddress": ip,
+                    "status": {"$in": ["failed", "spoof", "no_face", "liveness_failed"]},
+                    "timestamp": {"$gte": one_hour_ago, "$lte": log["timestamp"]}
+                }).to_list(length=10)
+                
+        agent = SecurityAIAgent()
+        insight = await agent.analyze_log(log, user_history)
+        return AIInsightResponse(insight=insight)
+    except Exception as e:
+        print(f"Failed to analyze log: {e}")
+        raise HTTPException(status_code=500, detail="Analysis failed")
+
+
+@app.get("/api/reports/daily")
+async def download_daily_report():
+    """Generates and downloads the daily SOC PDF report."""
+    db = Database.get_db()
+    logs_collection = db[LOGS_COLLECTION]
+    
+    # Get all logs for metrics
+    from datetime import datetime, timedelta
+    one_day_ago = datetime.now() - timedelta(hours=24)
+    all_logs = await logs_collection.find({"timestamp": {"$gte": one_day_ago}}).to_list(length=1000)
+    
+    success = sum(1 for l in all_logs if l.get("status") == "success")
+    highRisk = sum(1 for l in all_logs if l.get("status") == "spoof")
+    suspicious = len(all_logs) - success - highRisk
+    
+    metrics = {
+        "total": len(all_logs),
+        "success": success,
+        "suspicious": suspicious,
+        "highRisk": highRisk
+    }
+    
+    # Get recent high risk logs
+    threat_logs = [l for l in all_logs if l.get("riskLevel") in ["HIGH", "MEDIUM"]]
+    threat_logs = sorted(threat_logs, key=lambda x: x.get("timestamp", datetime.min), reverse=True)[:20]
+    
+    # Get AI Summary
+    ai_summary = None
+    try:
+        agent = SecurityAIAgent()
+        recent_100 = sorted(all_logs, key=lambda x: x.get("timestamp", datetime.min), reverse=True)[:100]
+        ai_summary = await agent.generate_daily_summary(recent_100)
+    except Exception as e:
+        print(f"Failed to fetch AI summary for report: {e}")
+        
+    pdf_bytes = generate_daily_report_pdf(metrics, threat_logs, ai_summary)
+    
+    headers = {
+        'Content-Disposition': 'attachment; filename="Sentinel_SOC_Daily_Report.pdf"'
+    }
+    return Response(content=pdf_bytes, media_type="application/pdf", headers=headers)
+
+
+@app.get("/api/alerts")
+async def get_alerts():
+    """Fetches AI agent alerts."""
+    db = Database.get_db()
+    alerts_col = db[ALERTS_COLLECTION]
+    
+    alerts = await alerts_col.find().sort("timestamp", -1).to_list(length=50)
+    
+    # Convert ObjectIds
+    for alert in alerts:
+        alert["id"] = str(alert.pop("_id"))
+        
+    return alerts
+
+@app.post("/api/alerts/{alert_id}/resolve")
+async def resolve_alert(alert_id: str):
+    """Marks an AI agent alert as resolved."""
+    db = Database.get_db()
+    alerts_col = db[ALERTS_COLLECTION]
+    from bson.objectid import ObjectId
+    
+    result = await alerts_col.update_one(
+        {"_id": ObjectId(alert_id)},
+        {"$set": {"resolved": True}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Alert not found")
+        
+    return {"message": "Alert resolved"}
+
+
+@app.post("/api/evals/run")
+async def run_ai_evaluation():
+    """Runs the AI Agent Evaluation pipeline against the Golden Dataset."""
+    evaluator = AgentEvaluator()
+    results = await evaluator.run_benchmark()
+    
+    # Save the result to MongoDB for historical tracking
+    db = Database.get_db()
+    eval_col = db["evaluations"]
+    
+    record = {
+        "timestamp": datetime.now(),
+        "metrics": results
+    }
+    await eval_col.insert_one(record)
+    
+    return results
+
+@app.get("/api/evals/results")
+async def get_evaluation_results():
+    """Fetches the latest AI Evaluation benchmark results."""
+    db = Database.get_db()
+    eval_col = db["evaluations"]
+    
+    # Get the most recent 10 evaluations
+    results = await eval_col.find().sort("timestamp", -1).to_list(length=10)
+    
+    # Format for JSON serialization
+    for res in results:
+        res["id"] = str(res.pop("_id"))
+        
+    return results
 
 
 @app.get("/api/system/reset-metrics")

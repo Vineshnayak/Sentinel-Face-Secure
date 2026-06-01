@@ -1,29 +1,41 @@
-# Python
-venv/
-__pycache__/
-*.pyc
-
-# Node
-node_modules/
-
-# Logs
-*.log
-server_log.txt
-
-# Environment
+# Environment variables and secrets
 .env
+.env.*
+!.env.example
+.encryption_key
+*.pem
+*.key
+credentials.json
+client_secret.json
 
-# OS
-.DS_Store
-
-# Build
+# Node modules and build
+node_modules/
 dist/
 build/
+.npm/
 
-# Temp
-*.tmp
+# Python Virtual Environment
+venv/
+env/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
 
-# Face data
-datasets/
-uploads/
-images/
+# Logs and databases
+*.log
+*.sqlite3
+server/sentinel_face.logs.json
+
+# IDEs and OS files
+.DS_Store
+.vscode/
+.idea/
+Thumbs.db
+
+# Project specific
+server/public/
+vite.config.ts.*
+*.tar.gz

@@ -12,19 +12,25 @@ class MaskedFaceHandler:
     """Handle face detection and recognition with masks and eyeglasses"""
     
     def __init__(self):
+        import os
+        
         # Load eye cascade for eyeglasses detection
         try:
-            self.eye_cascade = cv2.CascadeClassifier(
-                cv2.data.haarcascades + 'haarcascade_eye.xml'
-            )
+            eye_path = cv2.data.haarcascades + 'haarcascade_eye.xml'
+            if os.path.exists(eye_path):
+                self.eye_cascade = cv2.CascadeClassifier(eye_path)
+            else:
+                self.eye_cascade = None
         except:
             self.eye_cascade = None
         
         # Load nose cascade for mask detection
         try:
-            self.nose_cascade = cv2.CascadeClassifier(
-                cv2.data.haarcascades + 'haarcascade_mcs_nose.xml'
-            )
+            nose_path = cv2.data.haarcascades + 'haarcascade_mcs_nose.xml'
+            if os.path.exists(nose_path):
+                self.nose_cascade = cv2.CascadeClassifier(nose_path)
+            else:
+                self.nose_cascade = None
         except:
             self.nose_cascade = None
     

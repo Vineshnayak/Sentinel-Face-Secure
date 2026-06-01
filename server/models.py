@@ -18,6 +18,8 @@ class LogStatus(str, Enum):
     SUCCESS = "success"
     FAILED = "failed"
     SPOOF = "spoof"
+    LIVENESS_FAILED = "liveness_failed"
+    NO_FACE = "no_face"
 
 
 class UserBase(BaseModel):
@@ -53,6 +55,16 @@ class LogBase(BaseModel):
     userId: Optional[str] = None
     status: LogStatus
     spoofScore: Optional[str] = None
+    device: Optional[str] = None
+    browser: Optional[str] = None
+    os: Optional[str] = None
+    ipAddress: Optional[str] = None
+    location: Optional[str] = None
+    sessionId: Optional[str] = None
+    confidenceScore: Optional[float] = None
+    livenessScore: Optional[float] = None
+    riskScore: Optional[int] = None
+    riskLevel: Optional[str] = None
 
 
 class LogCreate(LogBase):
@@ -65,6 +77,16 @@ class LogResponse(BaseModel):
     timestamp: datetime
     status: str
     spoofScore: Optional[str]
+    device: Optional[str] = None
+    browser: Optional[str] = None
+    os: Optional[str] = None
+    ipAddress: Optional[str] = None
+    location: Optional[str] = None
+    sessionId: Optional[str] = None
+    confidenceScore: Optional[float] = None
+    livenessScore: Optional[float] = None
+    riskScore: Optional[int] = None
+    riskLevel: Optional[str] = None
     
     class Config:
         from_attributes = True
@@ -88,6 +110,8 @@ class EnrollResponse(BaseModel):
 class VerifyRequest(BaseModel):
     image: str
     images: Optional[List[str]] = None
+    sessionId: Optional[str] = None
+    location: Optional[str] = None
 
 
 class VerifyResponse(BaseModel):
@@ -113,3 +137,7 @@ class HealthResponse(BaseModel):
 
 class MessageResponse(BaseModel):
     message: str
+
+
+class AIInsightResponse(BaseModel):
+    insight: str

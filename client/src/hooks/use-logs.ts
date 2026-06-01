@@ -25,3 +25,25 @@ export function useLogs() {
     refetchInterval: 5000,
   });
 }
+
+export function useAiSummary() {
+  return useQuery({
+    queryKey: ["ai-summary"],
+    queryFn: async () => {
+      const res = await fetch(`${API_BASE}/api/insights/summary`);
+      if (!res.ok) throw new Error("Failed to fetch AI summary");
+      const data = await res.json();
+      return data.insight;
+    },
+    enabled: false, // Only run when triggered
+  });
+}
+
+export async function fetchAiAnalysis(logId: string) {
+  const res = await fetch(`${API_BASE}/api/insights/analyze/${logId}`, {
+    method: "POST"
+  });
+  if (!res.ok) throw new Error("Failed to analyze log");
+  const data = await res.json();
+  return data.insight;
+}

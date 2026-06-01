@@ -82,7 +82,7 @@ export function useEnroll() {
 
 export function useVerify() {
   return useMutation({
-    mutationFn: async (data: { image: string; images?: string[] }): Promise<VerifyResponse> => {
+    mutationFn: async (data: { image: string; images?: string[]; sessionId?: string; location?: string }): Promise<VerifyResponse> => {
       const res = await fetch(API_ENDPOINTS.verify, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

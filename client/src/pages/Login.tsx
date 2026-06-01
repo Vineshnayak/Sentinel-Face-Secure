@@ -28,6 +28,21 @@ export default function Login() {
   const [message, setMessage] = useState("");
   const [retryCount, setRetryCount] = useState(0);
   const [metrics, setMetrics] = useState<VerificationMetrics | null>(null);
+  const [sessionId] = useState(() => crypto.randomUUID());
+  const [locationStr, setLocationStr] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLocationStr(`${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`);
+        },
+        (error) => {
+          console.log("[Login] Location access denied or error:", error);
+        }
+      );
+    }
+  }, []);
 
   const captureAndVerify = useCallback(async () => {
     if (!webcamRef.current) return;
@@ -54,7 +69,9 @@ export default function Login() {
     try {
       const result = await verifyMutation.mutateAsync({ 
         image: frames[0],
-        images: frames 
+        images: frames,
+        sessionId,
+        location: locationStr
       });
       
       if (result.verified && result.user) {
