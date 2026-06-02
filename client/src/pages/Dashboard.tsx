@@ -137,7 +137,7 @@ function AdminView() {
     <div className="space-y-6">
       
       {/* AI Security Insights Panel */}
-      <TechCard title="AI Security Insights" subtitle="Gemini SOC Assistant">
+      <TechCard title="AI Security Insights" subtitle="Groq SOC Assistant">
         <div className="flex flex-col md:flex-row gap-4 items-start mt-4">
           <div className="flex flex-col gap-2">
             <Button 
@@ -483,7 +483,7 @@ function AdminView() {
                 {isAnalyzing ? (
                   <div className="flex items-center gap-3 animate-pulse text-indigo-300">
                     <Brain className="w-5 h-5" />
-                    <span>Gemini is analyzing threat patterns...</span>
+                    <span>Groq is analyzing threat patterns...</span>
                   </div>
                 ) : aiAnalysis ? (
                   <div className="prose prose-invert max-w-none">

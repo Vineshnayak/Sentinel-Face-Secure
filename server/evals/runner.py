@@ -2,16 +2,16 @@ import asyncio
 import time
 import json
 import os
-import google.generativeai as genai
+from groq import AsyncGroq
 from evals.dataset import get_golden_dataset
 
 class AgentEvaluator:
     def __init__(self):
-        api_key = os.getenv("GEMINI_API_KEY")
+        api_key = os.getenv("GROQ_API_KEY")
         if not api_key:
-            raise ValueError("GEMINI_API_KEY is missing")
-        genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel('gemini-2.5-flash')
+            raise ValueError("GROQ_API_KEY is missing")
+        self.client = AsyncGroq(api_key=api_key)
+        self.model = 'llama-3.3-70b-versatile'
 
     async def evaluate_log(self, log_data: dict) -> bool:
         """
@@ -33,9 +33,13 @@ class AgentEvaluator:
         """
         
         try:
-            response = await self.model.generate_content_async(prompt)
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.1
+            )
             # Clean up markdown if present
-            text = response.text.replace("```json", "").replace("```", "").strip()
+            text = response.choices[0].message.content.replace("```json", "").replace("```", "").strip()
             result = json.loads(text)
             return result.get("is_threat", False)
         except Exception as e:

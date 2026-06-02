@@ -30,7 +30,7 @@ export function AiEvaluationView() {
         <div>
           <h2 className="text-2xl font-display font-bold text-white mb-2">Agent Evaluation</h2>
           <p className="text-muted-foreground text-sm">
-            Benchmark the Gemini Security Agent against golden datasets.
+            Benchmark the Groq Security Agent against golden datasets.
           </p>
         </div>
         <Button 

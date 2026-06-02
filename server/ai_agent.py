@@ -1,15 +1,15 @@
 import os
-import google.generativeai as genai
+from groq import AsyncGroq
 from typing import List, Dict, Any
 
 class SecurityAIAgent:
     def __init__(self):
-        api_key = os.getenv("GEMINI_API_KEY")
+        api_key = os.getenv("GROQ_API_KEY")
         if not api_key:
-            raise ValueError("GEMINI_API_KEY is not set in environment variables.")
-        genai.configure(api_key=api_key)
-        # Using gemini-2.5-flash for faster responses and lower cost
-        self.model = genai.GenerativeModel('gemini-2.5-flash')
+            raise ValueError("GROQ_API_KEY is not set in environment variables.")
+        self.client = AsyncGroq(api_key=api_key)
+        # Using llama-3.3-70b-versatile for fast and capable analysis
+        self.model = 'llama-3.3-70b-versatile'
 
     async def generate_daily_summary(self, recent_logs: List[Dict[str, Any]]) -> str:
         """Generates a summary of the last 24 hours of logs."""
@@ -40,8 +40,12 @@ class SecurityAIAgent:
         """
         
         try:
-            response = await self.model.generate_content_async(prompt)
-            return response.text
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.1
+            )
+            return response.choices[0].message.content
         except Exception as e:
             print(f"Error generating AI summary: {e}")
             return "Unable to generate AI summary at this time. Please check your API key and connection."
@@ -72,8 +76,12 @@ class SecurityAIAgent:
         """
         
         try:
-            response = await self.model.generate_content_async(prompt)
-            return response.text
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.1
+            )
+            return response.choices[0].message.content
         except Exception as e:
             print(f"Error generating AI log analysis: {e}")
             return "Unable to generate analysis for this event."

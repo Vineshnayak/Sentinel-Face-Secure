@@ -81,7 +81,7 @@ MONGODB_URI=mongodb://localhost:27017
 DB_NAME=sentinel_face
 ENCRYPT_EMBEDDINGS=true
 USE_YOLO=false
-GEMINI_API_KEY=your_api_key_here
+GROQ_API_KEY=your_api_key_here
 ```
 
 ### Server Execution
