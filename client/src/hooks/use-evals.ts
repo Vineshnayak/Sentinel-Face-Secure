@@ -33,7 +33,7 @@ export function useRunEval() {
 
   return useMutation({
     mutationFn: async () => {
-      const apiKey = localStorage.getItem("groqApiKey") || "";
+      const apiKey = localStorage.getItem("groq_api_key") || "";
       const res = await fetch(`${API_BASE}/api/evals/run`, {
         method: "POST",
         headers: {

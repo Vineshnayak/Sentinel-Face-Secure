@@ -30,7 +30,7 @@ export function useAiSummary() {
   return useQuery({
     queryKey: ["ai-summary"],
     queryFn: async () => {
-      const apiKey = localStorage.getItem("groqApiKey") || "";
+      const apiKey = localStorage.getItem("groq_api_key") || "";
       const res = await fetch(`${API_BASE}/api/insights/summary`, {
         headers: {
           "X-Groq-Api-Key": apiKey
@@ -45,7 +45,7 @@ export function useAiSummary() {
 }
 
 export async function fetchAiAnalysis(logId: string) {
-  const apiKey = localStorage.getItem("groqApiKey") || "";
+  const apiKey = localStorage.getItem("groq_api_key") || "";
   const res = await fetch(`${API_BASE}/api/insights/analyze/${logId}`, {
     method: "POST",
     headers: {
