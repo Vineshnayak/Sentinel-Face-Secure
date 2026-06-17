@@ -18,7 +18,13 @@ class Database:
     @classmethod
     async def connect(cls):
         try:
-            cls.client = AsyncIOMotorClient(MONGODB_URI)
+            # For MongoDB Atlas (mongodb+srv), we often need tlsCAFile to ensure SSL verification works in Docker
+            if "mongodb+srv://" in MONGODB_URI:
+                import certifi
+                cls.client = AsyncIOMotorClient(MONGODB_URI, tlsCAFile=certifi.where())
+            else:
+                cls.client = AsyncIOMotorClient(MONGODB_URI)
+                
             cls.db = cls.client[DB_NAME]
             await cls.client.admin.command('ping')
             print(f"Connected to MongoDB database: {DB_NAME}")
