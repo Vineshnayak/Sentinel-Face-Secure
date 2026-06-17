@@ -50,8 +50,9 @@ The backend is completely containerized and ready for Hugging Face Spaces free-t
 ### Vercel / Railway / Render (Frontend Deployment)
 The React dashboard can be deployed instantly for free on Vercel:
 1. Connect your GitHub repository to Vercel.
-2. Set the Root Directory to `client`.
-3. Vercel will automatically use Vite to build and deploy your beautiful UI.
+2. Ensure the **Root Directory** is left empty (or set to `./`), as the `package.json` is in the repository root.
+3. Add a new Environment Variable `VITE_API_URL` and set its value to your Hugging Face Space URL.
+4. Vercel will automatically use Vite to build and deploy your beautiful UI.
 
 ## Environment Variables
 The application now securely handles AI API keys on the client-side. Users input their `X-Groq-Api-Key` into the Dashboard's settings modal, which is passed securely to the backend for AI evaluation.
