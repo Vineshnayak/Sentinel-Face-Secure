@@ -4,15 +4,13 @@
 ![Database](https://img.shields.io/badge/Database-MongoDB-green)
 ![AI Model](https://img.shields.io/badge/Model-MobileNetV2%20CNN-orange)
 
-# Sentinel Face Secure
-
-**Sentinel Face Secure** is a cutting-edge facial authentication and security monitoring platform. It uses real-time webcam face verification with anti-spoofing algorithms, combined with a highly responsive React (Vite) frontend dashboard, and an AI-powered agent (via Groq API) for SOC analysis and log threat evaluation.
+**Sentinel Face Secure** is a facial authentication and security monitoring platform. It implements real-time webcam face verification with anti-spoofing algorithms, a highly responsive React (Vite) frontend dashboard, and an AI-powered agent (via Groq API) for SOC analysis and log threat evaluation.
 
 ## Features
 - **Real-Time Facial Auth**: Detects faces using OpenCV and verifies identity using CNN embeddings and cosine similarity.
-- **Liveness Detection**: Employs eye aspect ratio (EAR) to require a blink to bypass spoofing attempts (e.g. photos or screens).
-- **Secure Dashboard**: Separate views for Admins, Managers, and Employees.
-- **AI Security Analyst (Groq)**: Analyzes logs in real-time, generates daily SOC briefings, and evaluates threats against golden datasets. Note: AI features require your own Groq API Key to be configured in the Security Settings tab on the dashboard.
+- **Liveness Detection**: Employs eye aspect ratio (EAR) and depth analysis to mitigate spoofing attempts via photos or screens.
+- **Secure Dashboard**: Granular access control with separate views for Admins, Managers, and Employees.
+- **AI Security Analyst (Groq)**: Analyzes logs in real-time, generates SOC briefings, and evaluates threats. Note: AI features require your own Groq API Key to be configured in the Security Settings tab on the dashboard.
 - **Live Event Stream**: Real-time logging of access attempts across environments.
 
 ## Local Setup
@@ -20,6 +18,7 @@
 ### 1. Prerequisites
 - Python 3.10+
 - Node.js 18+
+- MongoDB instance (local or Atlas)
 
 ### 2. Backend (Server)
 ```bash
@@ -39,23 +38,34 @@ npm run dev
 ```
 The frontend will run on `http://localhost:5173`.
 
-## Deployment
+## Secure Deployment
 
-### Hugging Face Spaces (Backend Deployment)
-The backend is completely containerized and ready for Hugging Face Spaces free-tier hosting.
-1. Create a new Space on Hugging Face using the "Docker" template.
-2. Push the contents of the `server` directory to your Space.
-3. The Space will automatically build the `Dockerfile` and start your FastAPI application securely.
+The application is architected for decoupled cloud deployment.
 
-### Vercel / Railway / Render (Frontend Deployment)
-The React dashboard can be deployed instantly for free on Vercel:
+### Step 1: Secure Git Push
+Ensure you have committed your changes and pushed to your GitHub repository securely, ensuring no sensitive files (e.g., `.env`, `.encryption_key`) are tracked:
+```bash
+git add .
+git commit -m "chore: prepare for production deployment"
+git push origin main
+```
+
+### Step 2: Backend (Hugging Face Spaces)
+The backend API is containerized and configured for Hugging Face Spaces (Docker environment).
+1. Create a new Space on Hugging Face using the **Docker** template.
+2. In your Space's Settings > Variables and secrets, add `MONGODB_URI` pointing to your MongoDB Atlas connection string.
+3. Push the contents of the `server` directory (including the `Dockerfile`) to the Space.
+4. The Space will automatically build and expose the FastAPI application.
+
+### Step 3: Frontend (Vercel)
+The React dashboard can be deployed directly from the GitHub repository using Vercel.
 1. Connect your GitHub repository to Vercel.
-2. Ensure the **Root Directory** is left empty (or set to `./`), as the `package.json` is in the repository root.
-3. Add a new Environment Variable `VITE_API_URL` and set its value to your Hugging Face Space URL.
-4. Vercel will automatically use Vite to build and deploy your beautiful UI.
+2. Ensure the **Root Directory** is left empty (or set to `./`), as the `package.json` is located in the repository root.
+3. Add a new Environment Variable `VITE_API_URL` and set its value to your deployed Hugging Face Space URL.
+4. Deploy the application.
 
 ## Environment Variables
-The application now securely handles AI API keys on the client-side. Users input their `X-Groq-Api-Key` into the Dashboard's settings modal, which is passed securely to the backend for AI evaluation.
+The application securely handles AI API keys on the client-side. Users input their `X-Groq-Api-Key` into the Dashboard's settings modal, which is passed securely via headers to the backend for AI evaluation.
 
 ---
 **Disclaimer**: This project is built for educational and advanced security demonstration purposes.
