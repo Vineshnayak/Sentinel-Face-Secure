@@ -21,6 +21,7 @@ function TechCard({ title, subtitle, children, className = "" }: { title: string
 export function AiEvaluationView() {
   const { data: evals, isLoading } = useEvals();
   const runEval = useRunEval();
+  const hasApiKey = !!localStorage.getItem("groq_api_key");
 
   const latestEval = evals && evals.length > 0 ? evals[0] : null;
 
@@ -33,17 +34,22 @@ export function AiEvaluationView() {
             Benchmark the Groq Security Agent against golden datasets.
           </p>
         </div>
-        <Button 
-          onClick={() => runEval.mutate()}
-          disabled={runEval.isPending}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white"
-        >
-          {runEval.isPending ? (
-            <span className="flex items-center"><Clock className="w-4 h-4 mr-2 animate-spin" /> Running Benchmark...</span>
-          ) : (
-            <span className="flex items-center"><PlayCircle className="w-4 h-4 mr-2" /> Run AI Evaluation</span>
+        <div className="flex flex-col items-end gap-2">
+          <Button 
+            onClick={() => runEval.mutate()}
+            disabled={runEval.isPending || !hasApiKey}
+            className={`text-white ${hasApiKey ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-slate-700 cursor-not-allowed opacity-50'}`}
+          >
+            {runEval.isPending ? (
+              <span className="flex items-center"><Clock className="w-4 h-4 mr-2 animate-spin" /> Running Benchmark...</span>
+            ) : (
+              <span className="flex items-center"><PlayCircle className="w-4 h-4 mr-2" /> Run AI Evaluation</span>
+            )}
+          </Button>
+          {!hasApiKey && (
+            <p className="text-xs text-rose-400 font-mono">⚠️ API Key required in Settings</p>
           )}
-        </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

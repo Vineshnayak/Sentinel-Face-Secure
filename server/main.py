@@ -1217,7 +1217,7 @@ async def get_system_metrics_endpoint():
 # ============== AI Insights Endpoints ==============
 
 @app.get("/api/insights/summary", response_model=AIInsightResponse)
-async def get_ai_summary():
+async def get_ai_summary(req: Request):
     """Generates a SOC summary of the last 24 hours of logs."""
     db = Database.get_db()
     logs_collection = db[LOGS_COLLECTION]
@@ -1226,7 +1226,8 @@ async def get_ai_summary():
     logs = await logs_collection.find({}).sort("timestamp", -1).limit(100).to_list(length=100)
     
     try:
-        agent = SecurityAIAgent()
+        api_key = req.headers.get("x-groq-api-key")
+        agent = SecurityAIAgent(api_key=api_key)
         summary = await agent.generate_daily_summary(logs)
         return AIInsightResponse(insight=summary)
     except Exception as e:
@@ -1234,7 +1235,7 @@ async def get_ai_summary():
         raise HTTPException(status_code=500, detail="AI Agent unavailable. Check API Key.")
 
 @app.post("/api/insights/analyze/{log_id}", response_model=AIInsightResponse)
-async def analyze_specific_log(log_id: str):
+async def analyze_specific_log(log_id: str, req: Request):
     """Provides deep-dive analysis on a specific log."""
     db = Database.get_db()
     logs_collection = db[LOGS_COLLECTION]
@@ -1258,7 +1259,8 @@ async def analyze_specific_log(log_id: str):
                     "timestamp": {"$gte": one_hour_ago, "$lte": log["timestamp"]}
                 }).to_list(length=10)
                 
-        agent = SecurityAIAgent()
+        api_key = req.headers.get("x-groq-api-key")
+        agent = SecurityAIAgent(api_key=api_key)
         insight = await agent.analyze_log(log, user_history)
         return AIInsightResponse(insight=insight)
     except Exception as e:
@@ -1267,7 +1269,7 @@ async def analyze_specific_log(log_id: str):
 
 
 @app.get("/api/reports/daily")
-async def download_daily_report():
+async def download_daily_report(req: Request):
     """Generates and downloads the daily SOC PDF report."""
     db = Database.get_db()
     logs_collection = db[LOGS_COLLECTION]
@@ -1295,7 +1297,8 @@ async def download_daily_report():
     # Get AI Summary
     ai_summary = None
     try:
-        agent = SecurityAIAgent()
+        api_key = req.headers.get("x-groq-api-key")
+        agent = SecurityAIAgent(api_key=api_key)
         recent_100 = sorted(all_logs, key=lambda x: x.get("timestamp", datetime.min), reverse=True)[:100]
         ai_summary = await agent.generate_daily_summary(recent_100)
     except Exception as e:
@@ -1342,9 +1345,10 @@ async def resolve_alert(alert_id: str):
 
 
 @app.post("/api/evals/run")
-async def run_ai_evaluation():
+async def run_ai_evaluation(req: Request):
     """Runs the AI Agent Evaluation pipeline against the Golden Dataset."""
-    evaluator = AgentEvaluator()
+    api_key = req.headers.get("x-groq-api-key")
+    evaluator = AgentEvaluator(api_key=api_key)
     results = await evaluator.run_benchmark()
     
     # Save the result to MongoDB for historical tracking

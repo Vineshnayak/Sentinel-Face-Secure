@@ -1,11 +1,63 @@
 # Sentinel Face Secure
-
 ![Language](https://img.shields.io/badge/Language-Python%20%7C%20TypeScript-blue)
 ![Framework](https://img.shields.io/badge/Framework-FastAPI%20%7C%20React-green)
 ![Database](https://img.shields.io/badge/Database-MongoDB-green)
 ![AI Model](https://img.shields.io/badge/Model-MobileNetV2%20CNN-orange)
 
-Sentinel Face Secure is an identity security operations platform and facial authentication system. It leverages convolutional neural networks (CNNs) for face recognition, multi-modal liveness detection, and an integrated AI-driven security operations center (SOC) for automated threat analysis. The system architecture is optimized for deployment on resource-constrained edge devices while providing enterprise-grade security monitoring.
+# Sentinel Face Secure
+
+**Sentinel Face Secure** is a cutting-edge facial authentication and security monitoring platform. It uses real-time webcam face verification with anti-spoofing algorithms, combined with a highly responsive React (Vite) frontend dashboard, and an AI-powered agent (via Groq API) for SOC analysis and log threat evaluation.
+
+## Features
+- **Real-Time Facial Auth**: Detects faces using OpenCV and verifies identity using CNN embeddings and cosine similarity.
+- **Liveness Detection**: Employs eye aspect ratio (EAR) to require a blink to bypass spoofing attempts (e.g. photos or screens).
+- **Secure Dashboard**: Separate views for Admins, Managers, and Employees.
+- **AI Security Analyst (Groq)**: Analyzes logs in real-time, generates daily SOC briefings, and evaluates threats against golden datasets. Note: AI features require your own Groq API Key to be configured in the Security Settings tab on the dashboard.
+- **Live Event Stream**: Real-time logging of access attempts across environments.
+
+## Local Setup
+
+### 1. Prerequisites
+- Python 3.10+
+- Node.js 18+
+
+### 2. Backend (Server)
+```bash
+cd server
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python main.py
+```
+The backend will run on `http://localhost:5001`.
+
+### 3. Frontend (Client)
+```bash
+cd client
+npm install
+npm run dev
+```
+The frontend will run on `http://localhost:5173`.
+
+## Deployment
+
+### Hugging Face Spaces (Backend Deployment)
+The backend is completely containerized and ready for Hugging Face Spaces free-tier hosting.
+1. Create a new Space on Hugging Face using the "Docker" template.
+2. Push the contents of the `server` directory to your Space.
+3. The Space will automatically build the `Dockerfile` and start your FastAPI application securely.
+
+### Vercel / Railway / Render (Frontend Deployment)
+The React dashboard can be deployed instantly for free on Vercel:
+1. Connect your GitHub repository to Vercel.
+2. Set the Root Directory to `client`.
+3. Vercel will automatically use Vite to build and deploy your beautiful UI.
+
+## Environment Variables
+The application now securely handles AI API keys on the client-side. Users input their `X-Groq-Api-Key` into the Dashboard's settings modal, which is passed securely to the backend for AI evaluation.
+
+---
+**Disclaimer**: This project is built for educational and advanced security demonstration purposes.
 
 ## System Architecture
 

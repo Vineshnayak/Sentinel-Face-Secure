@@ -3,15 +3,21 @@ from groq import AsyncGroq
 from typing import List, Dict, Any
 
 class SecurityAIAgent:
-    def __init__(self):
-        api_key = os.getenv("GROQ_API_KEY")
-        if not api_key:
-            raise ValueError("GROQ_API_KEY is not set in environment variables.")
-        self.client = AsyncGroq(api_key=api_key)
+    def __init__(self, api_key: str = None):
+        key = api_key or os.getenv("GROQ_API_KEY")
+        self.has_key = bool(key)
+        if self.has_key:
+            self.client = AsyncGroq(api_key=key)
+        else:
+            self.client = None
+            
         # Using llama-3.3-70b-versatile for fast and capable analysis
         self.model = 'llama-3.3-70b-versatile'
 
     async def generate_daily_summary(self, recent_logs: List[Dict[str, Any]]) -> str:
+        if not self.has_key:
+            return "Please configure your Groq API Key in the Settings to generate AI summaries."
+            
         """Generates a summary of the last 24 hours of logs."""
         
         # Format the logs into a concise string to avoid massive context
@@ -52,7 +58,9 @@ class SecurityAIAgent:
 
     async def analyze_log(self, log_details: Dict[str, Any], user_history: List[Dict[str, Any]] = None) -> str:
         """Provides an in-depth analysis of a specific (likely high-risk) log event."""
-        
+        if not self.has_key:
+            return "Please configure your Groq API Key in the Settings to enable deep-dive analysis."
+            
         prompt = f"""
         You are an expert SOC analyst investigating a specific authentication event that was flagged by our Risk Engine.
         

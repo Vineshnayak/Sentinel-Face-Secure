@@ -6,11 +6,14 @@ from groq import AsyncGroq
 from evals.dataset import get_golden_dataset
 
 class AgentEvaluator:
-    def __init__(self):
-        api_key = os.getenv("GROQ_API_KEY")
-        if not api_key:
-            raise ValueError("GROQ_API_KEY is missing")
-        self.client = AsyncGroq(api_key=api_key)
+    def __init__(self, api_key: str = None):
+        key = api_key or os.getenv("GROQ_API_KEY")
+        self.has_key = bool(key)
+        if self.has_key:
+            self.client = AsyncGroq(api_key=key)
+        else:
+            self.client = None
+            
         self.model = 'llama-3.3-70b-versatile'
 
     async def evaluate_log(self, log_data: dict) -> bool:
@@ -47,6 +50,9 @@ class AgentEvaluator:
             return False
 
     async def run_benchmark(self) -> dict:
+        if not self.has_key:
+            raise ValueError("API Key is required to run evaluation")
+            
         dataset = get_golden_dataset()
         results = {
             "total_evaluated": len(dataset),
