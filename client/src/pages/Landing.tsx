@@ -10,20 +10,12 @@ export default function Landing() {
       <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-accent/5 blur-[100px] rounded-full pointer-events-none" />
 
       {/* Navbar */}
-      <nav className="relative z-50 max-w-7xl mx-auto px-6 py-6 flex justify-between items-center">
+      <nav className="relative z-50 max-w-7xl mx-auto px-6 py-6 flex items-center">
         <div className="flex items-center gap-2">
           <div className="bg-primary/20 p-2 rounded-lg border border-primary/20">
             <ScanFace className="w-6 h-6 text-primary" />
           </div>
           <span className="font-display font-bold text-xl tracking-tight">SENTINEL<span className="text-primary">FACE</span></span>
-        </div>
-        <div className="flex items-center gap-4">
-          <Link href="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            System Access
-          </Link>
-          <Link href="/register" className="bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-2 rounded-lg text-sm font-medium transition-all">
-            Enroll New User
-          </Link>
         </div>
       </nav>
 
