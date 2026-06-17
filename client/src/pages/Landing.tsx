@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { ShieldCheck, UserPlus, ScanFace, Lock } from "lucide-react";
+import { ShieldCheck, UserPlus, ScanFace, Lock, Sparkles, Zap, Eye } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function Landing() {
@@ -87,30 +87,60 @@ export default function Landing() {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.8 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-32 w-full max-w-5xl text-left"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-32 w-full max-w-5xl text-left"
         >
-          <div className="p-6 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm hover:border-primary/30 transition-colors">
-            <div className="w-12 h-12 rounded-lg bg-blue-500/20 flex items-center justify-center mb-4 text-blue-400">
-              <ScanFace className="w-6 h-6" />
+          {/* Feature 1 */}
+          <div className="p-5 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm hover:border-primary/30 transition-colors group">
+            <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center mb-3 text-blue-400 group-hover:scale-110 transition-transform">
+              <ScanFace className="w-5 h-5" />
             </div>
-            <h3 className="text-xl font-bold font-display mb-2">Liveness Detection</h3>
-            <p className="text-muted-foreground text-sm">Prevents spoofing attacks using photos or videos by analyzing depth and micro-movements.</p>
+            <h3 className="text-lg font-bold font-display mb-1">Active Liveness</h3>
+            <p className="text-muted-foreground text-sm leading-relaxed">Blocks spoofing via photos or video playbacks with advanced depth analysis.</p>
           </div>
           
-          <div className="p-6 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm hover:border-primary/30 transition-colors">
-            <div className="w-12 h-12 rounded-lg bg-purple-500/20 flex items-center justify-center mb-4 text-purple-400">
-              <Lock className="w-6 h-6" />
+          {/* Feature 2 */}
+          <div className="p-5 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm hover:border-primary/30 transition-colors group">
+            <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center mb-3 text-purple-400 group-hover:scale-110 transition-transform">
+              <Lock className="w-5 h-5" />
             </div>
-            <h3 className="text-xl font-bold font-display mb-2">Role-Based Access</h3>
-            <p className="text-muted-foreground text-sm">Granular control with distinct dashboards for Admins, Managers, Employees, and Guests.</p>
+            <h3 className="text-lg font-bold font-display mb-1">Role-Based Auth</h3>
+            <p className="text-muted-foreground text-sm leading-relaxed">Granular access control tailored for Admins, Managers, and Employees.</p>
           </div>
 
-          <div className="p-6 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm hover:border-primary/30 transition-colors">
-            <div className="w-12 h-12 rounded-lg bg-emerald-500/20 flex items-center justify-center mb-4 text-emerald-400">
-              <ShieldCheck className="w-6 h-6" />
+          {/* Feature 3 */}
+          <div className="p-5 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm hover:border-primary/30 transition-colors group">
+            <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center mb-3 text-emerald-400 group-hover:scale-110 transition-transform">
+              <ShieldCheck className="w-5 h-5" />
             </div>
-            <h3 className="text-xl font-bold font-display mb-2">Audit Logging</h3>
-            <p className="text-muted-foreground text-sm">Comprehensive tracking of every authentication attempt, success, failure, and spoof detection.</p>
+            <h3 className="text-lg font-bold font-display mb-1">Immutable Logs</h3>
+            <p className="text-muted-foreground text-sm leading-relaxed">Comprehensive tracking of all authentication attempts and spoof detections.</p>
+          </div>
+
+          {/* Feature 4 */}
+          <div className="p-5 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm hover:border-primary/30 transition-colors group">
+            <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center mb-3 text-amber-400 group-hover:scale-110 transition-transform">
+              <Eye className="w-5 h-5" />
+            </div>
+            <h3 className="text-lg font-bold font-display mb-1">Adaptive Vision</h3>
+            <p className="text-muted-foreground text-sm leading-relaxed">Seamlessly recognizes users even when wearing glasses or partial face masks.</p>
+          </div>
+
+          {/* Feature 5 */}
+          <div className="p-5 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm hover:border-primary/30 transition-colors group">
+            <div className="w-10 h-10 rounded-lg bg-rose-500/10 flex items-center justify-center mb-3 text-rose-400 group-hover:scale-110 transition-transform">
+              <Zap className="w-5 h-5" />
+            </div>
+            <h3 className="text-lg font-bold font-display mb-1">Sub-second Speed</h3>
+            <p className="text-muted-foreground text-sm leading-relaxed">Optimized MobileNetV2 architecture delivers instant verification at the edge.</p>
+          </div>
+
+          {/* Feature 6 */}
+          <div className="p-5 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm hover:border-primary/30 transition-colors group">
+            <div className="w-10 h-10 rounded-lg bg-cyan-500/10 flex items-center justify-center mb-3 text-cyan-400 group-hover:scale-110 transition-transform">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <h3 className="text-lg font-bold font-display mb-1">AI Analytics</h3>
+            <p className="text-muted-foreground text-sm leading-relaxed">Generates intelligent insights, anomaly reports, and daily security briefings.</p>
           </div>
         </motion.div>
       </main>
