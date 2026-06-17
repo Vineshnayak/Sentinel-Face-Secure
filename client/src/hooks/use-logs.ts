@@ -30,7 +30,12 @@ export function useAiSummary() {
   return useQuery({
     queryKey: ["ai-summary"],
     queryFn: async () => {
-      const res = await fetch(`${API_BASE}/api/insights/summary`);
+      const apiKey = localStorage.getItem("groqApiKey") || "";
+      const res = await fetch(`${API_BASE}/api/insights/summary`, {
+        headers: {
+          "X-Groq-Api-Key": apiKey
+        }
+      });
       if (!res.ok) throw new Error("Failed to fetch AI summary");
       const data = await res.json();
       return data.insight;
@@ -40,8 +45,12 @@ export function useAiSummary() {
 }
 
 export async function fetchAiAnalysis(logId: string) {
+  const apiKey = localStorage.getItem("groqApiKey") || "";
   const res = await fetch(`${API_BASE}/api/insights/analyze/${logId}`, {
-    method: "POST"
+    method: "POST",
+    headers: {
+      "X-Groq-Api-Key": apiKey
+    }
   });
   if (!res.ok) throw new Error("Failed to analyze log");
   const data = await res.json();

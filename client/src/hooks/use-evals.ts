@@ -33,8 +33,12 @@ export function useRunEval() {
 
   return useMutation({
     mutationFn: async () => {
+      const apiKey = localStorage.getItem("groqApiKey") || "";
       const res = await fetch(`${API_BASE}/api/evals/run`, {
         method: "POST",
+        headers: {
+          "X-Groq-Api-Key": apiKey
+        }
       });
       if (!res.ok) throw new Error("Failed to run evaluation");
       return res.json();
